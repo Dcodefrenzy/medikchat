@@ -1,0 +1,50 @@
+{
+  "name": "chatappstarter",
+  "version": "1.0.0",
+  "description": "starter chat app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "Dcodefrenzy"
+  },
+  "keywords": [
+    "chat",
+    "app",
+    "pair",
+    "to",
+    "pair",
+    "starter"
+  ],
+  "author": "Dcodefrenzy",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "bootstrap": "^4.3.1",
+    "crypto-js": "^3.1.9-1",
+    "dotenv": "^8.1.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.3.0",
+    "lodash": "^4.17.15",
+    "mongodb": "^3.3.3",
+    "mongoose": "^5.7.5",
+    "multer": "^1.4.2",
+    "nodemailer": "^4.7.0",
+    "nodemailer-sendgrid-transport": "^0.2.0",
+    "socket.io": "^2.3.0",
+    "validator": "^10.6.0"
+  },
+  "devDependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "ejs": "^1.0.0",
+    "expect": "^23.5.0",
+    "express": "^4.17.1",
+    "mocha": "^5.2.0",
+    "morgan": "^1.9.1",
+    "nodemon": "^1.19.4",
+    "supertest": "^3.1.0"
+  }
+}
