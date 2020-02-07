@@ -14,7 +14,6 @@ const chatSessionsSchema = mongoose.Schema({
         start:{
             type:Date,
             require:true,
-            default:Date.now,
         },
         end:{
             type:Date,
