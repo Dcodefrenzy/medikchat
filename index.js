@@ -1,13 +1,13 @@
 const express = require("express");
 const app = express();
 const http = require('http').createServer(app)
-const io = require("socket.io")(http);
+const nameSpace = require("socket.io")(http);
 const {mongoose} = require("./api/v1/model/mongoose");
 const sessions = require("./api/v1/chatSessions/chatSessionsModel");
 const sessionsCounts = require("./api/v1/chatSessionsCount/chatSessionsCountModel");
 const chats = require("./api/v1/chat/chatModel")
  
-
+const io = nameSpace.of('/chat');
 
 io.on('connection', function(socket){
     socket.on("check session", (from)=>{
