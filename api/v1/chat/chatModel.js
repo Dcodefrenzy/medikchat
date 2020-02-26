@@ -23,7 +23,7 @@ const chatSchema = mongoose.Schema({
         },
         createdAt:{
             type:Date,
-            default:new Date(),
+            require:true,
         },
         sessionId:{
             type:mongoose.Schema.Types.ObjectId,

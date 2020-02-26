@@ -1,13 +1,30 @@
 const express = require("express");
 const app = express();
+const cors = require('cors')
 const http = require('http').createServer(app)
-const nameSpace = require("socket.io")(http);
+const io = require("socket.io")(http, {path: '/socket.io'});
 const {mongoose} = require("./api/v1/model/mongoose");
 const sessions = require("./api/v1/chatSessions/chatSessionsModel");
 const sessionsCounts = require("./api/v1/chatSessionsCount/chatSessionsCountModel");
-const chats = require("./api/v1/chat/chatModel")
+const chats = require("./api/v1/chat/chatModel");
+
+const bodyParser = require("body-parser");
+const morgan = require("morgan");
  
-const io = nameSpace.of('/chat');
+//const sio = io.of('/socket.io');
+
+const coreOptions = {
+        origin: "http://localhost:3000", 
+        optionsSuccessStatus: 200
+}
+
+app.use(bodyParser.json({limit: '10mb', extended: true}))
+app.use(bodyParser.urlencoded({limit: '10mb', extended: true}))
+app.use(morgan('dev'));
+app.use(cors(coreOptions));
+app.use(cors())
+
+
 
 io.on('connection', function(socket){
     socket.on("check session", (from)=>{
@@ -29,7 +46,7 @@ io.on('connection', function(socket){
         sessions.findOne({$or: [ {from:from, to:to}, {from:to, to:from}]}).then((session)=>{
             
             if(!session) {
-                const session = new sessions({from:from,to:to,start:new Date});
+                const session = new sessions({from:from,to:to,start:new Date()});
                 session.save().then((session)=>{
                     socket.join(session._id);
                     console.log({"new session":session} )
@@ -40,7 +57,7 @@ io.on('connection', function(socket){
              }else if(session){
                 //console.log(session)
                 if (session.endSession === true) {
-                    sessions.findByIdAndUpdate(session._id, {$set: {endSession:false, start:new Date}}, {new: true}).then((session)=>{
+                    sessions.findByIdAndUpdate(session._id, {$set: {endSession:false, start:new Date()}}, {new: true}).then((session)=>{
                         socket.join(session._id);
                         console.log({"old session":session})
                        io.to(session._id).emit("create session", session.to);
@@ -95,12 +112,13 @@ io.on('connection', function(socket){
 
     socket.on("send message", function(chatData){
         sessions.findOne({$or: [ {from:chatData.from, to:chatData.to, endSession:false}, {to:chatData.from, from:chatData.to, endSession:false}]}).then((session)=>{
-            const chat = new chats({from:chatData.from,to:chatData.to,message:chatData.message,sessionId:session._id});
+            const chat = new chats({from:chatData.from,to:chatData.to,message:chatData.message,sessionId:session._id,createdAt:new Date()});
             chat.save().then((chat)=>{
                     chats.find({sessionId:chat.sessionId}).then((chat)=>{
                       
-                        socket.join(chat.sessionId);
-                        io.to(chat.sessionId).emit('get message', chat);
+                        socket.join(session._id);
+                        console.log(session._id);
+                        io.in(session._id).emit('get message', chat);
                     })
             })
         }).catch(()=>{
@@ -115,8 +133,8 @@ io.on('connection', function(socket){
            }else{
             chats.find({sessionId:session._id}).then((chat)=>{
                // console.log(chat)
-                socket.join(chat.sessionId);
-                io.to(chat.sessionId).emit('fetch message', chat);
+                socket.join(session._id);
+                socket.emit('fetch message', chat);
                 })
             }
         }).catch((e)=>{
@@ -132,7 +150,10 @@ io.on('connection', function(socket){
         })
     })
     
-
+    socket.on('disconnect', function () {
+        io.emit('user disconnected');
+    });
+    
     
   });
 
