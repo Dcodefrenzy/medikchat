@@ -60,7 +60,7 @@ io.on('connection', function(socket){
                     sessions.findByIdAndUpdate(session._id, {$set: {endSession:false, start:new Date()}}, {new: true}).then((session)=>{
                         socket.join(session._id);
                         console.log({"old session":session})
-                       io.to(session._id).emit("create session", session.to);
+                       io.to(session._id).emit("create session",session.from, session.to);
                     })
                 }else{      
                 socket.join(session._id);
@@ -74,22 +74,14 @@ io.on('connection', function(socket){
         })
     })
     
-    socket.on("end session", (chatData)=>{ console.log(chatData)
+    socket.on("end session", (chatData)=>{ //console.log(chatData)
         sessions.findOne({$or: [ {from:chatData.from, to:chatData.to}, {to:chatData.from, from:chatData.to}]}).then((session)=>{
 
             sessions.findByIdAndUpdate(session._id, {$set: {endSession:true}}, {new: true}).then((session)=>{
-               // console.log({"session1":session})
-                const sessionCount = new sessionsCounts({_sessionId:session._id, start:session.start});
-                sessionCount.save().then((sessionCount)=>{
-                        if (sessionCount) {     
-                            socket.join(session._id);
-                           // console.log({"session":session})
-                          
-                            io.to(session._id).emit("end session", session, sessionCount);
-                        }
-                }).catch((e)=>{
-                    console.log(e)
-                })
+            // console.log({"session1":session})    
+             socket.join(session._id);
+            
+              io.to(session._id).emit("end session", session);
             })
         }).catch(e=>{
             console.log(e);
