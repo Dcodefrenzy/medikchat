@@ -126,6 +126,7 @@ io.on('connection', function(socket){
         })
     })
     socket.on("fetch message", function(chatData){
+        console.log(chatData);
         sessions.findOne({$or: [ {from:chatData.from, to:chatData.to, endSession:false}, {to:chatData.from, from:chatData.to, endSession:false}]}).then((session)=>{
            console.log(session)
            if (!session) {
