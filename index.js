@@ -27,6 +27,12 @@ app.use(cors())
 
 
 io.on('connection', function(socket){
+    socket.on("all sessions", ()=>{
+        sessions.find({endSession:false}).then((sessions)=>{
+            console.log(sessions);
+            socket.emit('all sessions', sessions);
+        })
+    })
     socket.on("check session", (from)=>{
         sessions.findOne({$or: [ {from:from, endSession:false}, {to:from, endSession:false}]}).then((session)=>{
           
@@ -45,8 +51,10 @@ io.on('connection', function(socket){
     socket.on("session start", (from, to)=>{
         sessions.findOne({$or: [ {from:from, to:to}, {from:to, to:from}]}).then((session)=>{
             
+            const start = new Date();
+            
             if(!session) {
-                const session = new sessions({from:from,to:to,start:new Date()});
+                const session = new sessions({from:from,to:to,start:start});
                 session.save().then((session)=>{
                     socket.join(session._id);
                     console.log({"new session":session} )
@@ -57,7 +65,7 @@ io.on('connection', function(socket){
              }else if(session){
                 //console.log(session)
                 if (session.endSession === true) {
-                    sessions.findByIdAndUpdate(session._id, {$set: {endSession:false, start:new Date()}}, {new: true}).then((session)=>{
+                    sessions.findByIdAndUpdate(session._id, {$set: {endSession:false, start:start}}, {new: true}).then((session)=>{
                         socket.join(session._id);
                         console.log({"old session":session})
                        io.to(session._id).emit("create session",session.from, session.to);
