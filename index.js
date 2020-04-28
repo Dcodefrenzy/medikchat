@@ -111,31 +111,26 @@ io.on('connection', function(socket){
     })
 
     socket.on("send message", function(chatData){
-        sessions.findOne({$or: [ {from:chatData.from, to:chatData.to, endSession:false}, {to:chatData.from, from:chatData.to, endSession:false}]}).then((session)=>{
-            const chat = new chats({from:chatData.from,to:chatData.to,message:chatData.message,sessionId:session._id,createdAt:new Date()});
-            chat.save().then((chat)=>{
-                    chats.find({sessionId:chat.sessionId}).then((chat)=>{
-                      
-                        socket.join(session._id);
-                        console.log(session._id);
-                        io.in(session._id).emit('get message', chat);
-                    })
+            const chat = new chats({from:chatData.from,to:chatData.to,message:chatData.message,sessionId:chatData.room,createdAt:new Date()});
+            chat.save().then((chat)=>{                         
+                //socket.join(chatData.room);
+               // console.log(chat.message);
+                socket.to(chatData.room).emit('get message', chat);
+            }).catch(()=>{
+                console.log(e);
             })
-        }).catch(()=>{
-            console.log(e);
-        })
     })
     socket.on("fetch message", function(chatData){
-        console.log(chatData);
+       // console.log(chatData);
         sessions.findOne({$or: [ {from:chatData.from, to:chatData.to, endSession:false}, {to:chatData.from, from:chatData.to, endSession:false}]}).then((session)=>{
-           console.log(session)
+         //  console.log(session)
            if (!session) {
                 io.to(socket.id).emit('fetch message', false);
            }else{
             chats.find({sessionId:session._id}).then((chat)=>{
                // console.log(chat)
                 socket.join(session._id);
-                socket.emit('fetch message', chat);
+                socket.emit('fetch message', chat, session._id);
                 })
             }
         }).catch((e)=>{
