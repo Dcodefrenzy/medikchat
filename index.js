@@ -112,13 +112,8 @@ io.on('connection', function(socket){
 
     socket.on("send message", function(chatData){
             const chat = new chats({from:chatData.from,to:chatData.to,message:chatData.message,sessionId:chatData.room,createdAt:new Date()});
-            chat.save().then((chat)=>{                         
-                //socket.join(chatData.room);
-               // console.log(chat.message);
-                socket.to(chatData.room).emit('get message', chat);
-            }).catch(()=>{
-                console.log(e);
-            })
+            socket.to(chatData.room).emit('get message', chat);
+            chat.save();
     })
     socket.on("fetch message", function(chatData){
        // console.log(chatData);
