@@ -27,6 +27,7 @@ app.use(cors())
 
 
 io.on('connection', function(socket){
+    console.log("connected")
     socket.on("all sessions", ()=>{
         sessions.find({endSession:false}).then((sessions)=>{
             //console.log(sessions);
@@ -143,6 +144,7 @@ io.on('connection', function(socket){
     })
     
     socket.on('disconnect', function () {
+        console.log("disconnected")
         io.emit('user disconnected');
     });
     
