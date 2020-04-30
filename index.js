@@ -29,7 +29,7 @@ app.use(cors())
 io.on('connection', function(socket){
     socket.on("all sessions", ()=>{
         sessions.find({endSession:false}).then((sessions)=>{
-            console.log(sessions);
+            //console.log(sessions);
             socket.emit('all sessions', sessions);
         })
     })
