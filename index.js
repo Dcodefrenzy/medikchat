@@ -27,7 +27,7 @@ app.use(cors())
 
 
 io.on('connection', function(socket){
-    console.log("connected")
+    console.log(`Socket ${socket.id} connected.`);
     socket.on("all sessions", ()=>{
         sessions.find({endSession:false}).then((sessions)=>{
             //console.log(sessions);
