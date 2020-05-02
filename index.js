@@ -142,11 +142,22 @@ io.on('connection', function(socket){
             console.log(e)
         })
     })
+
+    socket.on('typing',(room)=>{
+        console.log("yes")
+        socket.to(room).emit("typing", "is typing")
+    });
+    
+    socket.on('not typing', (room)=>{
+        console.log("no")
+        socket.to(room).emit('not typing', "")
+    })
     
     socket.on('disconnect', function () {
         console.log("disconnected")
         io.emit('user disconnected');
     });
+
     
     
   });
