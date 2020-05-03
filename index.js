@@ -27,13 +27,28 @@ app.use(cors())
 
 
 io.on('connection', function(socket){
-    console.log(`Socket ${socket.id} connected.`);
+    console.log(`connected.`);
     socket.on("all sessions", ()=>{
         sessions.find({endSession:false}).then((sessions)=>{
             //console.log(sessions);
             socket.emit('all sessions', sessions);
         })
     })
+    socket.on("validate session", (data)=>{
+        sessions.findOne({$or: [ {from:data.from, to:data.to, endSession:false}, {to:data.from, from:data.to, endSession:false}]}).then((session)=>{
+            if (session) {
+                socket.join(session._id);
+                io.to(session._id).emit('validate session', session);
+                socket.to(session._id).emit('user isOnline', true);
+            }else{
+                io.to(socket.id).emit('validate session', session);
+            }
+        }).catch((e)=>{
+            console.log(e)
+        })
+
+    })
+
     socket.on("check session", (from)=>{
         sessions.findOne({$or: [ {from:from, endSession:false}, {to:from, endSession:false}]}).then((session)=>{
           
@@ -111,8 +126,13 @@ io.on('connection', function(socket){
         })
     })
 
+    socket.on('user isOffline', (room)=>{
+        socket.to(room).emit('user isOnline', false);
+    })
+
     socket.on("send message", function(chatData){
-        console.log(chatData)
+        
+        socket.to(chatData.room).emit('user isOnline', true);
             const chat = new chats({from:chatData.from,to:chatData.to,message:chatData.message,sessionId:chatData.room,createdAt:new Date()});
             io.to(chatData.room).emit('get message', chat);
             chat.save();
@@ -144,16 +164,16 @@ io.on('connection', function(socket){
     })
 
     socket.on('typing',(room)=>{
-        console.log("yes")
+       // console.log("yes")
         socket.to(room).emit("typing", "is typing")
     });
     
     socket.on('not typing', (room)=>{
-        console.log("no")
+        //console.log("no")
         socket.to(room).emit('not typing', "")
     })
     
-    socket.on('disconnect', function () {
+    socket.on('disconnect', function (room) {
         console.log("disconnected")
         io.emit('user disconnected');
     });
