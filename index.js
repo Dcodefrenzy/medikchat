@@ -163,6 +163,12 @@ io.on('connection', function(socket){
         })
     })
 
+    socket.on("fetch all sessions",()=>{
+        sessions.find({endSession:false}).then((sessions)=>{
+            io.emit("fetch all sessions", sessions);
+        })
+    })
+
     socket.on('typing',(room)=>{
        // console.log("yes")
         socket.to(room).emit("typing", "is typing")
