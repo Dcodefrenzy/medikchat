@@ -64,17 +64,17 @@ io.on('connection', function(socket){
             console.log(e)
         })
     })
-    socket.on("session start", (from, to)=>{
+    socket.on("session start", (from, to, message)=>{
         sessions.findOne({$or: [ {from:from, to:to}, {from:to, to:from}]}).then((session)=>{
-            
             const start = new Date();
-            
             if(!session) {
                 const session = new sessions({from:from,to:to,start:start});
                 session.save().then((session)=>{
                     socket.join(session._id);
                     console.log({"new session":session} )
-                    io.to(session._id).emit('create session', session.from, session.to)
+                    const chat = new chats({from:to,to:from,message:message,sessionId:session._id,createdAt:new Date()});
+                    chat.save()
+                    io.to(session._id).emit('create session', session.from, session.to, session._id)
                 }).catch((e)=>{
                     console.log(e)
                 })
@@ -82,15 +82,19 @@ io.on('connection', function(socket){
                 //console.log(session)
                 if (session.endSession === true) {
                     sessions.findByIdAndUpdate(session._id, {$set: {endSession:false, start:start}}, {new: true}).then((session)=>{
-                        socket.join(session._id);
+                      
                         console.log({"old session":session})
-                       io.to(session._id).emit("create session",session.from, session.to);
+                        const chat = new chats({from:to,to:from,message:message,sessionId:session._id,createdAt:new Date()});
+                        chat.save()
+                       io.to(socket.id).emit("create session",session.from, session.to, session._id);
                     })
                 }else{      
                 socket.join(session._id);
-                
                 console.log({"oldest session":session})
-                 io.to(session._id).emit('create session', session.from, session.to)
+                
+                const chat = new chats({from:to,to:from,message:message,sessionId:session._id,createdAt:new Date()});
+                chat.save()
+                 io.to(socket.id).emit('create session', session.from, session.to, session._id)
                 }
             }
         }).catch(e=>{
@@ -102,10 +106,10 @@ io.on('connection', function(socket){
         sessions.findOne({$or: [ {from:chatData.from, to:chatData.to}, {to:chatData.from, from:chatData.to}]}).then((session)=>{
 
             sessions.findByIdAndUpdate(session._id, {$set: {endSession:true}}, {new: true}).then((session)=>{
-            // console.log({"session1":session})    
+             console.log({"session1":session})    
              socket.join(session._id);
             
-              io.to(session._id).emit("end session", session);
+              io.to(session._id).emit("end session", chatData.session, chatData.from);
             })
         }).catch(e=>{
             console.log(e);
@@ -130,6 +134,7 @@ io.on('connection', function(socket){
         socket.to(room).emit('user isOnline', false);
     })
 
+ 
     socket.on("send message", function(chatData){
         
         socket.to(chatData.room).emit('user isOnline', true);
