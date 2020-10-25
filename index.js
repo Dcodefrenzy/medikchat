@@ -94,7 +94,7 @@ io.on('connection', function(socket){
                 
                 const chat = new chats({from:to,to:from,message:message,sessionId:session._id,createdAt:new Date()});
                 chat.save()
-                 io.to(socket.id).emit('create session', session.from, session.to, session._id)
+                 io.to(socket.id).emit('create session', from, to, session._id)
                 }
             }
         }).catch(e=>{
