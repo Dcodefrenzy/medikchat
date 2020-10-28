@@ -21,6 +21,10 @@ const chatSchema = mongoose.Schema({
             require:true,
             default:false,
         },
+        image:{
+            type:Boolean,
+            default:false,
+        },
         createdAt:{
             type:Date,
             require:true,

@@ -7,6 +7,8 @@ const {mongoose} = require("./api/v1/model/mongoose");
 const sessions = require("./api/v1/chatSessions/chatSessionsModel");
 const sessionsCounts = require("./api/v1/chatSessionsCount/chatSessionsCountModel");
 const chats = require("./api/v1/chat/chatModel");
+const multer = require('multer');
+const path = require('path');
 
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
@@ -138,7 +140,7 @@ io.on('connection', function(socket){
     socket.on("send message", function(chatData){
         
         socket.to(chatData.room).emit('user isOnline', true);
-            const chat = new chats({from:chatData.from,to:chatData.to,message:chatData.message,sessionId:chatData.room,createdAt:new Date()});
+            const chat = new chats({from:chatData.from,to:chatData.to,message:chatData.message,sessionId:chatData.room,createdAt:new Date(),image:chatData.image});
             io.to(chatData.room).emit('get message', chat);
             chat.save();
     })
