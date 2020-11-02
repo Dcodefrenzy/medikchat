@@ -162,6 +162,50 @@ io.on('connection', function(socket){
         })
     })
 
+    socket.on("makecall", function(chatData){
+        console.log({"stream":chatData})
+        sessions.findOne({$or: [ {from:chatData.from, to:chatData.to, endSession:false}, {to:chatData.from, from:chatData.to, endSession:false}]}).then((session)=>{
+            if (!session) {
+                io.to(socket.id).emit('fetch message', false);
+           }else{
+               socket.join(session._id);
+               socket.to(session._id).emit("getStream", session, chatData)
+           }
+
+        })
+  
+    })
+
+    
+    socket.on("reconect", function(chatData){
+        console.log({"stream":chatData})
+        sessions.findOne({$or: [ {from:chatData.from, to:chatData.to, endSession:false}, {to:chatData.from, from:chatData.to, endSession:false}]}).then((session)=>{
+            if (!session) {
+                io.to(socket.id).emit('fetch message', false);
+           }else{
+               socket.join(session._id);
+               socket.to(session._id).emit("reconnection", session, chatData)
+           }
+
+        })
+  
+    })
+
+        
+    socket.on("accept", function(chatData){
+        console.log({"stream":chatData})
+        sessions.findOne({$or: [ {from:chatData.from, to:chatData.to, endSession:false}, {to:chatData.from, from:chatData.to, endSession:false}]}).then((session)=>{
+            if (!session) {
+                io.to(socket.id).emit('fetch message', false);
+           }else{
+               socket.join(session._id);
+               socket.to(session._id).emit("accept", session, chatData)
+           }
+
+        })
+  
+    })
+
     socket.on("fetch session", function(from){
         sessions.find({$or: [ {from:from, endSession:false}, {to:from, endSession:false}]}).then((session)=>{
             io.to(socket.id).emit('fetch session', session);
